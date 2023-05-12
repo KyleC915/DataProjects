@@ -103,4 +103,40 @@ Join PortfolioProject..CovidVaccination$ vac
 	and dea.date = vac.date
 Where dea.continent is not null
 
+-- TABLES USED FOR TABLEAU DASHBOARD
+
+-- Global Covid-19 Cases (As of 4/30/23)
+1.
+Select SUM(new_cases) as TotalCases, 
+	SUM(new_deaths) as TotalDeaths, 
+	CASE WHEN SUM(new_cases) > 0 THEN SUM(new_deaths)/SUM(new_cases)*100 ELSE NULL END AS DeathPercentage
+From PortfolioProject..CovidDeath$
+Where continent is not null
+Order by 1, 2
+
+-- Total Deaths by Continent from Covid-19 (As of 4/30/23)
+2.
+Select location, SUM(cast(new_deaths as int)) as TotalDeathCount
+From PortfolioProject..CovidDeath$
+Where continent is null
+and location not in ('World', 'European Union', 'International', 'High income', 'Upper middle income', 'Lower middle income', 'Low income')
+Group by location
+Order by TotalDeathCount desc
+
+-- Percent of Population Infected Per Country (As of 4/30/23) - World Map
+3. 
+Select location, population, max(total_cases) as HighestInfectionCount, Max((total_cases / population))*100 as PercentPopulationInfected
+From PortfolioProject..CovidDeath$
+Group by location, population
+Order by PercentPopulationInfected desc
+
+-- Percent of Population Infected (As of 4/30/23) - Filtered Countries with Projections
+4.
+Select location, population, date, max(total_cases) as HighestInfectionCount, Max((total_cases / population))*100 as PercentPopulationInfected
+From PortfolioProject..CovidDeath$
+Group by location, population, date
+Order by PercentPopulationInfected desc
+
+
+
 

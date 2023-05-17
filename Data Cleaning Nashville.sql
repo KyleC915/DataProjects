@@ -1,137 +1,136 @@
 /*
-
 Cleaning Data in SQL Queries
-
 */
 
-Select * 
-From PortfolioProject.dbo.NashvilleHousing
+SELECT * 
+FROM PortfolioProject.dbo.NashvilleHousing
 
 -------------------------------------------------------------------------------------------------------------------------
-
 -- Standardize Date Format 
 
-Select SaleDateConverted, Convert(Date, SaleDate)
-From PortfolioProject.dbo.NashvilleHousing
+SELECT SaleDateConverted, CONVERT(Date, SaleDate)
+FROM PortfolioProject.dbo.NashvilleHousing
 
-Update PortfolioProject.dbo.NashvilleHousing
-SET SaleDate = Convert(Date, SaleDate)
+UPDATE PortfolioProject.dbo.NashvilleHousing
+SET SaleDate = CONVERT(Date, SaleDate)
 
-Alter table PortfolioProject.dbo.NashvilleHousing
-Add SaleDateConverted Date;
+ALTER TABLE PortfolioProject.dbo.NashvilleHousing
+ADD SaleDateConverted Date;
 
-Update PortfolioProject.dbo.NashvilleHousing
-SET SaleDateConverted = Convert(Date, SaleDate)
+UPDATE PortfolioProject.dbo.NashvilleHousing
+SET SaleDateConverted = CONVERT(Date, SaleDate)
 
 -------------------------------------------------------------------------------------------------------------------------
-
 -- Populate Property Address data
 
-Select *
-From PortfolioProject.dbo.NashvilleHousing
-Order by ParcelID
+SELECT *
+FROM PortfolioProject.dbo.NashvilleHousing
+ORDER BY ParcelID
 
-Select a.ParcelID, a.PropertyAddress, b.ParcelID, b.PropertyAddress, ISNULL(a.PropertyAddress, b.PropertyAddress)
-From PortfolioProject.dbo.NashvilleHousing a
+SELECT a.ParcelID, a.PropertyAddress, b.ParcelID, b.PropertyAddress, ISNULL(a.PropertyAddress, b.PropertyAddress)
+FROM PortfolioProject.dbo.NashvilleHousing a
 JOIN PortfolioProject.dbo.NashvilleHousing b
-	on a.ParcelID = b.ParcelID
+	ON a.ParcelID = b.ParcelID
 	AND a.[UniqueID] <> b.[UniqueID]
-Where a.PropertyAddress is null
+WHERE a.PropertyAddress IS NULL
 
-Update a
+UPDATE a
 SET PropertyAddress = ISNULL(a.PropertyAddress, b.PropertyAddress)
 FROM PortfolioProject.dbo.NashvilleHousing a
 JOIN PortfolioProject.dbo.NashvilleHousing b
-	on a.ParcelID = b. ParcelID
+	ON a.ParcelID = b. ParcelID
 	AND a.[UniqueID] <> b.[UniqueID]
-Where a.PropertyAddress is null
+WHERE a.PropertyAddress IS NULL
 
 -------------------------------------------------------------------------------------------------------------------------
-
 -- Breaking out Address into Individual Columns (Address, City, State)
 
-Select PropertyAddress
-From PortfolioProject.dbo.NashvilleHousing
+SELECT PropertyAddress
+FROM PortfolioProject.dbo.NashvilleHousing
 
-Select
-Substring(PropertyAddress, 1, CHARINDEX(',', PropertyAddress) -1 ) as StreetAddress
-, Substring(PropertyAddress, CHARINDEX(',', PropertyAddress) +1, LEN(PropertyAddress)) as City
+SELECT
+SUBSTRING(PropertyAddress, 1, CHARINDEX(',', PropertyAddress) -1 ) AS StreetAddress
+, SUBSTRING(PropertyAddress, CHARINDEX(',', PropertyAddress) +1, LEN(PropertyAddress)) AS City
 
-From PortfolioProject.dbo.NashvilleHousing
+FROM PortfolioProject.dbo.NashvilleHousing
 
-Alter table PortfolioProject.dbo.NashvilleHousing
-Add PropertySplitAddress Nvarchar(255);
+ALTER TABLE PortfolioProject.dbo.NashvilleHousing
+ADD PropertySplitAddress NVARCHAR(255);
 
-Update PortfolioProject.dbo.NashvilleHousing
-SET PropertySplitAddress = Substring(PropertyAddress, 1, CHARINDEX(',', PropertyAddress) -1 )
+UPDATE PortfolioProject.dbo.NashvilleHousing
+SET PropertySplitAddress = SUBSTRING(PropertyAddress, 1, CHARINDEX(',', PropertyAddress) -1 )
 
-Alter table PortfolioProject.dbo.NashvilleHousing
-Add PropertySplitCity Nvarchar(255);
+ALTER TABLE PortfolioProject.dbo.NashvilleHousing
+ADD PropertySplitCity NVARCHAR(255);
 
-Update PortfolioProject.dbo.NashvilleHousing
-SET PropertySplitCity = Substring(PropertyAddress, CHARINDEX(',', PropertyAddress) +1, LEN(PropertyAddress))
+UPDATE PortfolioProject.dbo.NashvilleHousing
+SET PropertySplitCity = SUBSTRING(PropertyAddress, CHARINDEX(',', PropertyAddress) +1, LEN(PropertyAddress))
 
-
--------------------------------------------------------------------------------------------------------------------------
-
-Select OwnerAddress
-From PortfolioProject.dbo.NashvilleHousing
-
-Select
-Parsename(REPLACE(OwnerAddress, ',', '.') ,3)
-,Parsename(REPLACE(OwnerAddress, ',', '.') ,2)
-,Parsename(REPLACE(OwnerAddress, ',', '.') ,1)
-From PortfolioProject.dbo.NashvilleHousing
-
-Alter table PortfolioProject.dbo.NashvilleHousing
-Add OwnerSplitAddress Nvarchar(255);
-
-Update PortfolioProject.dbo.NashvilleHousing
-SET OwnerSplitAddress = Parsename(REPLACE(OwnerAddress, ',', '.') ,3)
-
-Alter table PortfolioProject.dbo.NashvilleHousing
-Add OwnerSplitCity Nvarchar(255);
-
-Update PortfolioProject.dbo.NashvilleHousing
-SET OwnerSplitCity = Parsename(REPLACE(OwnerAddress, ',', '.') ,2)
-
-Alter table PortfolioProject.dbo.NashvilleHousing
-Add OwnerSplitState Nvarchar(255);
-
-Update PortfolioProject.dbo.NashvilleHousing
-SET OwnerSplitState = Parsename(REPLACE(OwnerAddress, ',', '.') ,1)
 
 -------------------------------------------------------------------------------------------------------------------------
+-- Extract and Update Owner's Address to three new columns.
 
+SELECT OwnerAddress
+FROM PortfolioProject.dbo.NashvilleHousing
+
+-- Change commas into periods.
+
+SELECT
+PARSENAME(REPLACE(OwnerAddress, ',', '.') ,3)
+,PARSENAME(REPLACE(OwnerAddress, ',', '.') ,2)
+,PARSENAME(REPLACE(OwnerAddress, ',', '.') ,1)
+FROM PortfolioProject.dbo.NashvilleHousing
+
+-- Use 'PARSENAME' function to extract components and split it into the three new columns.
+-- Named the columns "OwnerSplit___" to demonstrate the parsename.
+
+ALTER TABLE PortfolioProject.dbo.NashvilleHousing
+ADD OwnerSplitAddress NVARCHAR(255);
+
+UPDATE PortfolioProject.dbo.NashvilleHousing
+SET OwnerSplitAddress = PARSENAME(REPLACE(OwnerAddress, ',', '.') ,3)
+
+ALTER TABLE PortfolioProject.dbo.NashvilleHousing
+ADD OwnerSplitCity NVARCHAR(255);
+
+UPDATE PortfolioProject.dbo.NashvilleHousing
+SET OwnerSplitCity = PARSENAME(REPLACE(OwnerAddress, ',', '.') ,2)
+
+ALTER TABLE PortfolioProject.dbo.NashvilleHousing
+ADD OwnerSplitState NVARCHAR(255);
+
+UPDATE PortfolioProject.dbo.NashvilleHousing
+SET OwnerSplitState = PARSENAME(REPLACE(OwnerAddress, ',', '.') ,1)
+
+-------------------------------------------------------------------------------------------------------------------------
 -- Change Y and N to Yes and No "Sold as Vacant" field
 
-Select Distinct(SoldAsVacant), Count(SoldAsVacant)
-From PortfolioProject.dbo.NashvilleHousing
-Group by SoldAsVacant
-Order by 2
+SELECT DISTINCT(SoldAsVacant), COUNT(SoldAsVacant)
+FROM PortfolioProject.dbo.NashvilleHousing
+GROUP BY SoldAsVacant
+ORDER BY 2
 
-Select SoldAsVacant
-, CASE When SoldAsVacant = 'Y' THEN 'Yes'
-	   When SoldAsVacant = 'N' THEN 'No'
-	   Else SoldAsVacant
-	   End
-From PortfolioProject.dbo.NashvilleHousing
+SELECT SoldAsVacant
+, CASE WHEN SoldAsVacant = 'Y' THEN 'Yes'
+	   WHEN SoldAsVacant = 'N' THEN 'No'
+	   ELSE SoldAsVacant
+	   END
+FROM PortfolioProject.dbo.NashvilleHousing
 
-Update PortfolioProject.dbo.NashvilleHousing
+UPDATE PortfolioProject.dbo.NashvilleHousing
 SET SoldAsVacant = 
-  CASE When SoldAsVacant = 'Y' THEN 'Yes'
-	   When SoldAsVacant = 'N' THEN 'No'
-	   Else SoldAsVacant
-	   End
-
+  CASE WHEN SoldAsVacant = 'Y' THEN 'Yes'
+	   WHEN SoldAsVacant = 'N' THEN 'No'
+	   ELSE SoldAsVacant
+	   END
+	   
 -------------------------------------------------------------------------------------------------------------------------
-
 -- Remove Duplicates
 
-With RowNumCTE as (
-Select *,
+WITH RowNumCTE AS (
+SELECT *,
 	ROW_NUMBER() OVER (
-	Partition by ParcelID,
+	PARTITION BY ParcelID,
 				 PropertyAddress,
 				 SalePrice,
 				 SaleDate,
@@ -139,22 +138,20 @@ Select *,
 				 ORDER  BY
 				 UniqueID
 				 ) row_num
-From PortfolioProject.dbo.NashvilleHousing
+FROM PortfolioProject.dbo.NashvilleHousing
 )
-Delete
-From RowNumCTE
-Where row_num > 1
+DELETE
+FROM RowNumCTE
+WHERE row_num > 1
 
 -------------------------------------------------------------------------------------------------------------------------
-
 -- Delete Unused Columns
 
-Alter table PortfolioProject.dbo.NashvilleHousing
-Drop column OwnerAddress, TaxDistrict, PropertyAddress, SaleDate
+ALTER TABLE PortfolioProject.dbo.NashvilleHousing
+DROP COLUMN OwnerAddress, TaxDistrict, PropertyAddress, SaleDate
 
 -------------------------------------------------------------------------------------------------------------------------
-
 --Check Cleaned Data
 
-Select *
-From PortfolioProject.dbo.NashvilleHousing
+SELECT *
+FROM PortfolioProject.dbo.NashvilleHousing
